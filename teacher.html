@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yeshua Educational Platform – Teacher Portal</title>
+    <meta name="description" content="Yeshua Educational Platform – Teacher management and classroom portal." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+    <!-- App Root -->
+    <div id="app"></div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/init.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/sync.js"></script>
+    <script src="js/router.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/teacher.js"></script>
+    <script>
+        // Initialize data first
+        if (typeof DataInit !== 'undefined') {
+            DataInit.init();
+        }
+        
+        // Teacher Portal - Check login or show login form
+        function showLogin() {
+            document.getElementById('app').innerHTML = `
+            <div class="auth-wrap">
+            <div class="auth-bg-blob"></div>
+            <div class="auth-card glass">
+                <div class="auth-logo">
+                <div class="auth-logo-icon">📜</div>
+                <div class="auth-logo-text">
+                    <strong>Yeshua Educational Platform</strong>
+                    <span>TEACHER PORTAL</span>
+                </div>
+                </div>
+                <h1 class="auth-title">Teacher Access</h1>
+                <p class="auth-sub">Sign in to your educator dashboard.</p>
+                <form id="teacher-login-form">
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <div class="input-wrap">
+                    <span class="input-icon">📧</span>
+                    <input id="t-email" type="email" class="form-input" placeholder="teacher@yeshua.edu" autocomplete="email" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="input-wrap">
+                    <span class="input-icon">🔑</span>
+                    <input id="t-pass" type="password" class="form-input" placeholder="••••••••" autocomplete="current-password" />
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:0.5rem;">
+                    Sign In →
+                </button>
+                </form>
+                <div class="auth-switch">
+                <a href="index.html">← Back to Student Portal</a>
+                </div>
+                <div class="auth-demo-box">
+                <p>🔑 Demo Credentials</p>
+                <span>📧 teacher@yeshua.edu | 🔒 teacher</span>
+                </div>
+            </div>
+            </div>
+        `;
+
+            document.getElementById('teacher-login-form').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                var email = document.getElementById('t-email').value.trim();
+                var pass = document.getElementById('t-pass').value;
+                var btn = e.target.querySelector('button[type="submit"]');
+                
+                btn.disabled = true; btn.textContent = 'Signing in…';
+
+                try {
+                    var res = Auth.login(email, pass, false);
+                    
+                    if (res.pending) {
+                        // Async login - poll for result
+                        var attempts = 0;
+                        var maxAttempts = 30;
+                        var checkAuth = setInterval(function() {
+                            attempts++;
+                            var user = Auth.current();
+                            if (user || attempts >= maxAttempts) {
+                                clearInterval(checkAuth);
+                                btn.disabled = false;
+                                btn.textContent = 'Sign In →';
+                                
+                                if (user && user.role === 'teacher') {
+                                    UI.toast('Welcome back, ' + user.name + '!', 'success');
+                                    setTimeout(function() { window.location.reload(); }, 500);
+                                } else if (user && user.role !== 'teacher') {
+                                    UI.toast('Access denied. Teacher account required.', 'error');
+                                } else {
+                                    UI.toast('Invalid teacher credentials', 'error');
+                                }
+                            }
+                        }, 100);
+                    } else if (res.ok && res.user.role === 'teacher') {
+                        btn.disabled = false; btn.textContent = 'Sign In →';
+                        UI.toast('Welcome back, ' + res.user.name + '!', 'success');
+                        setTimeout(function() { window.location.reload(); }, 500);
+                    } else {
+                        btn.disabled = false; btn.textContent = 'Sign In →';
+                        UI.toast(res.err || 'Invalid teacher credentials', 'error');
+                    }
+                } catch (err) {
+                    btn.disabled = false; btn.textContent = 'Sign In →';
+                    UI.toast(err.message || 'Login failed', 'error');
+                }
+            });
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                var user = Auth.current();
+                if (user && user.role === 'teacher') {
+                    if (typeof initTeacherPortal === 'function') {
+                        initTeacherPortal();
+                    } else {
+                        // Redirect to main login with teacher tab
+                        window.location.href = 'index.html#login-teacher';
+                    }
+                } else {
+                    // Redirect to main login with teacher tab
+                    window.location.href = 'index.html#login-teacher';
+                }
+            } catch (err) {
+                console.error('Init error:', err);
+                document.getElementById('app').innerHTML = '<div style="padding:2rem; text-align:center;"><h2>Error Loading</h2><p>' + err.message + '</p></div>';
+            }
+        });
+    </script>
+</body>
+
+</html>

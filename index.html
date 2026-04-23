@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yeshua Educational Platform – Student Portal</title>
+  <meta name="description"
+    content="Yeshua Educational Platform – Your complete school management and learning portal." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <!-- App Root -->
+  <div id="app"></div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/init.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/sync.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/teacher.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/assignment-quiz.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Force initialization with default users
+      const defaultUsers = [
+        { id: 'u001', name: 'Nathaniel Adeyemi', initials: 'NA', email: 'student@yeshua.edu', password: 'student', role: 'student', studentId: 'YEP/2024/0012', class: 'SS3', session: '2024/2025', term: 'Second Term', sex: 'Male', admissionNo: 'YEP/2024/0012' },
+        { id: 'T001', name: 'Teacher', initials: 'T', email: 'teacher@yeshua.edu', password: 'teacher', role: 'teacher', teacherId: 'T001', session: '2024/2025', term: 'Second Term' },
+        { id: 'A001', name: 'Administrator', initials: 'AD', email: 'admin@yeshua.edu', password: 'admin', role: 'admin', adminId: 'A001', session: '2024/2025', term: 'Second Term' },
+        { id: 'SA001', name: 'Super Administrator', initials: 'SA', email: 'superadmin@yeshua.edu', password: 'superadmin', role: 'superadmin', adminId: 'SA001', session: '2024/2025', term: 'Second Term' },
+        { id: 'AC001', name: 'School Accountant', initials: 'AC', email: 'account@yeshua.edu', password: 'account', role: 'accountant', accountantId: 'AC001', session: '2024/2025', term: 'Second Term' }
+      ];
+      
+      if (!localStorage.getItem('yep_users')) {
+        localStorage.setItem('yep_users', JSON.stringify(defaultUsers));
+        console.log('✓ Users initialized:', defaultUsers.length);
+      } else {
+        const users = JSON.parse(localStorage.getItem('yep_users'));
+        // Check if student user exists with correct password
+        const hasStudent = users.some(u => u.email === 'student@yeshua.edu' && u.password === 'student');
+        if (!hasStudent) {
+          // Add or fix student user
+          const existingIdx = users.findIndex(u => u.email === 'student@yeshua.edu');
+          if (existingIdx >= 0) {
+            users[existingIdx].password = 'student';
+          } else {
+            users.push(defaultUsers[0]);
+          }
+          localStorage.setItem('yep_users', JSON.stringify(users));
+          console.log('✓ Student user fixed');
+        }
+      }
+      
+      // Initialize assignments
+      if (!localStorage.getItem('yep_assignments')) {
+        const defaultAssignments = [
+          { id: 'a001', subject: 'Mathematics', icon: '📐', iconColor: '#9B2D54', title: 'Linear Algebra Worksheet', desc: 'Complete exercises 1–15 on page 42 regarding vector spaces and linear transformations.', dueLabel: 'Due Today', dueClass: 'due-today', est: '45 mins', status: 'active', actions: ['submit'] },
+          { id: 'a002', subject: 'History', icon: '🌍', iconColor: '#8B6A3C', title: 'The Industrial Revolution Essay', desc: 'Write a 1000-word essay analyzing the social and economic impacts of the Industrial Revolution.', dueLabel: '2 Days Left', dueClass: 'due-days', est: '2 hours', status: 'active', actions: ['continue'] }
+        ];
+        localStorage.setItem('yep_assignments', JSON.stringify(defaultAssignments));
+        console.log('✓ Assignments initialized');
+      }
+      
+      // Initialize notes
+      if (!localStorage.getItem('yep_notes')) {
+        const defaultNotes = [
+          { id: 'n001', subject: 'Computer Studies', week: '01', title: 'REVISION / BASIC PROGRAMMING', desc: 'Introduction to Python and Logic', term: 'Second', date: '18 Jan \'26', icon: '💻', iconColor: '#2D7DD2' },
+          { id: 'n002', subject: 'Biology', week: '02', title: 'CELL BIOLOGY AND GENETICS', desc: 'Understanding DNA structure and replication', term: 'Second', date: "20 Jan '26", icon: '🧬', iconColor: '#2D9B6F' },
+          { id: 'n003', subject: 'Mathematics', week: '04', title: 'CALCULUS: DIFFERENTIATION', desc: 'First principles and power rule', term: 'Second', date: "21 Jan '26", icon: '📐', iconColor: '#9B2D54' }
+        ];
+        localStorage.setItem('yep_notes', JSON.stringify(defaultNotes));
+        console.log('✓ Notes initialized');
+      }
+      
+      // Initialize exams
+      if (!localStorage.getItem('yep_exams')) {
+        const defaultExams = [
+          { id: 'ex001', title: 'Mathematics Quiz 101', desc: 'Algebra, Calculus & Geometry fundamentals.', duration: 30, questions: 5, status: 'not-started', format: 'mcq', subject: 'Mathematics', icon: '🧠', bg: '#EDF4FD', iconColor: '#2D7DD2' },
+          { id: 'ex002', title: 'Advanced Physics', desc: 'Quantum mechanics and Thermodynamics.', duration: 90, questions: 50, status: 'upcoming', icon: '⚛️', bg: '#EDF4FD', iconColor: '#2D7DD2' },
+          { id: 'ex003', title: 'English Lit.', desc: 'Analysis of 19th-century classic literature.', duration: 45, questions: 30, status: 'new', icon: '📖', bg: '#F5F0E8', iconColor: '#9B7B3C' }
+        ];
+        localStorage.setItem('yep_exams', JSON.stringify(defaultExams));
+        console.log('✓ Exams initialized');
+      }
+      
+      console.log('✓ Current users:', JSON.parse(localStorage.getItem('yep_users') || '[]').map(u => u.email + '/' + u.password));
+      
+      // Initialize router after all scripts loaded
+      if (typeof Router !== 'undefined' && typeof Router.init === 'function') {
+        Router.init();
+      }
+    });
+  </script>
+</body>
+
+</html>

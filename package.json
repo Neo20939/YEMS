@@ -1,0 +1,17 @@
+{
+  "name": "yems",
+  "version": "1.0.0",
+  "description": "YEMS static web app",
+  "private": true,
+  "scripts": {
+    "dev": "live-server --port=5173 --host=127.0.0.1 --no-browser --watch=.",
+    "start": "live-server --port=5173 --host=127.0.0.1 --no-browser --watch=.",
+    "test": "echo \"No tests configured\" && exit 0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}
